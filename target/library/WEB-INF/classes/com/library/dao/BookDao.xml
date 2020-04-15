@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.library.dao.BookDao">
+    <resultMap id="bookMap" type="Book">
+        <!--主键字段的对应-->
+        <id property="id" column="book_id"/>
+        <!--非主键字段的对应-->
+        <result property="title" column="book_title"/>
+        <result property="cName" column="category_name"/>
+        <result property="price" column="book_price"/>
+        <result property="author" column="book_author"/>
+        <result property="press" column="book_press"/>
+        <result property="publishDate" column="book_publishDate"/>
+    </resultMap>
+
+    <sql id="selectBookList">
+        <where>
+            <if test="title != null" >
+                book_title like concat("%",#{title},"%")
+            </if>
+            <if test="id != null" >
+                and book_id = #{id}
+            </if>
+            <if test="cName != null" >
+                and category_name = #{cName}
+            </if>
+        </where>
+    </sql>
+    <!--根据条件获得所有图书信息-->
+    <select id="getAllBooks" parameterType="Book" resultMap="bookMap">
+        select book_id,
+               book_title,
+               category_name,
+               book_price,
+               book_author,
+               book_press,
+               book_publishDate
+        from books
+        <include refid="selectBookList"/>
+        <if test="start != null and size != null">
+            limit #{start},#{size}
+        </if>
+    </select>
+
+    <!--获取书籍列表总记录数-->
+    <select id="getCount" parameterType="Book" resultType="int">
+        select count(*) from books
+        <include refid="selectBookList"/>
+    </select>
+
+    <!--得到所有书籍种类-->
+    <select id="getAllCategory" resultType="java.lang.String">
+        select distinct category_name from books
+    </select>
+
+    <!--根据id获取图书信息-->
+    <select id="getBookById" parameterType="integer" resultMap="bookMap">
+        select * from books where book_id = #{id}
+    </select>
+
+    <!--添加图书-->
+    <insert id="add" parameterType="Book">
+        insert into books(book_title,
+                          category_name,
+                          book_price,
+                          book_author,
+                          book_press,
+                          book_publishDate)
+        values(#{title},#{cName},#{price},#{author},#{press},#{publishDate})
+    </insert>
+
+    <!--更新图书信息-->
+    <update id="update" parameterType="Book">
+        update books
+        <set>
+            <if test="title != null" >
+                book_title = #{title},
+            </if>
+            <if test="cName != null" >
+                category_name = #{cName},
+            </if>
+            <if test="price != null" >
+                book_price = #{price},
+            </if>
+            <if test="author != null" >
+                book_author = #{author},
+            </if>
+            <if test="press != null">
+                book_press = #{press},
+            </if>
+            <if test="publishDate != null">
+                book_publishDate = #{publishDate}
+            </if>
+        </set>
+        where book_id = #{id}
+    </update>
+
+    <!--根据id删除图书-->
+    <delete id="delete" parameterType="integer">
+        delete from books where book_id = #{id}
+    </delete>
+</mapper>

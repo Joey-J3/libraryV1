@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context-4.3.xsd
+        http://www.springframework.org/schema/aop
+        http://www.springframework.org/schema/aop/spring-aop-4.3.xsd
+        http://www.springframework.org/schema/tx
+        http://www.springframework.org/schema/tx/spring-tx-4.3.xsd">
+
+    <!--1、读取db.properties-->
+    <context:property-placeholder location="classpath:db.properties"/>
+
+    <!--2、配置c3p0数据源-->
+    <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close">
+        <!--数据库驱动-->
+        <property name="driverClass" value="${jdbc.driver}"></property>
+        <!--连接数据库的url-->
+        <property name="jdbcUrl" value="${jdbc.url}"></property>
+        <!--连接数据库的用户名-->
+        <property name="user" value="${jdbc.username}"></property>
+        <!--连接数据库的密码-->
+        <property name="password" value="${jdbc.password}"></property>
+        <!--当连接池中的连接耗尽时c3p0一次同时获取的连接数-->
+        <property name="acquireIncrement" value="5"></property>
+        <!--初始连接池大小-->
+        <property name="initialPoolSize" value="10"></property>
+        <!--连接池中连接最大值-->
+        <property name="maxPoolSize" value="20"></property>
+        <!--连接池中连接最小值-->
+        <property name="minPoolSize" value="5"></property>
+    </bean>
+
+    <!--3、配置事务管理器-->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <!--数据源-->
+        <property name="dataSource" ref="dataSource"></property>
+    </bean>
+    <!--支持注解驱动的事务管理，指定事务管理器-->
+    <tx:annotation-driven transaction-manager="transactionManager"/>
+
+    <!--4、aspectj支持自动代理实现AOP功能 -->
+    <aop:aspectj-autoproxy proxy-target-class="true"></aop:aspectj-autoproxy>
+
+    <!--5、配置MyBatis的工厂-->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <!--数据源-->
+        <property name="dataSource" ref="dataSource"></property>
+        <!--配置MyBatis的核心配置文件所在位置-->
+        <property name="configLocation" value="classpath:mybatis-config.xml"></property>
+    </bean>
+
+    <!--6、自动扫描对象关系映射-->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <!--指定要扫描接口的基础包，实现接口-->
+        <property name="basePackage" value="com.library.dao"></property>
+    </bean>
+
+    <!--7、配置容器自动扫描IOC组件-->
+    <context:component-scan base-package="com.library"/>
+</beans>
